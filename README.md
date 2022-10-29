@@ -38,3 +38,13 @@ It should be noted that the bound error ≤ P/2 holds even when the previous equ
 ![alt text](https://github.com/francescotaurone/floatingpoint-preprocessing/blob/main/figures/errorBoundForIncreasingA.png?raw=true)
 
 Given x = 2.15355810 with varying A, we plot with black line the absolute value of the recovery error, with red line the error bound, with vertical dashed green vertical lines the 2^i numbers, namely the change of exponent regions, and with red vertical lines 2^i - x. The light red areas highlight where x_1 + A belongs to 2^{E_U^A} does not hold, namely where both x and A play a role in determining the recovery error
+
+
+## On checks after multiplication 
+
+In some cases, the multiplication y = M * x might output a weird result, that we can fix by performing an extra check. Let's see an example.
+Consider x_1 = 17.2307701111. We want to reach y = 224.0 by performing the multiplication by 13. However,  y_1 = x_1 * 13 = 224.000015259, with mantissa 11000000000000000000001 having a one at the end. We might think that the x_1 we selected is just a tiny bit too big. Let's consider than the previous representable FP number, namely x_2 = 17.2307682037. With this number, the result is y_2 = x_2 * 13 = 223.9999866481, which has mantissa 10111111111111111111111.  This means that there is no number in 32 bits floating point that multiplied by 13 gives 224.0.
+
+We might also notice that y_1 - y = y_2 - y = P, where P = 2^{7-23} = 2^{-16} is the precision of the number, namely the quantity multiplied with the last bit in the mantissa.
+
+The reason for this behavior lies in the fact that we are using FP with round to nearest approximation approach. Therefore, if we want to keep using it while avoiding the unwanted behavior, we should check after the multiplication by M if we are P away from achieving the desired number of ending zeros, and if so adjust the result with the operations y = y_1 - P or y = y_2 + P.
